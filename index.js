@@ -483,25 +483,6 @@ const getActiveString = (active, map) => {
     }
 }
 
-let cleanned = false
-
-const b = async () => {
-    if (!!topTradersRange || copyIds.length > 0) {
-
-        let fsConfig = fs.readFileSync('config.json')
-        let config = JSON.parse(fsConfig)
-        copyIds = !isNaN(config.copyIds.split(',')[0]) && !isNaN(config.copyIds.split(',')[1]) ? config.copyIds.split(',') : []
-
-
-        if (log)
-            console.log('cleaning...')
-        cleanned = true
-
-        leadersArray = []
-        getLeadersBool = false
-    }
-}
-
 setInterval(() => {
     b()
 }, 240000)//60000
