@@ -5,21 +5,18 @@ const WebSocket = require('ws')
 require('dotenv').config()
 const Players = require('./mongo')
 
-// const TelegramBot = require('node-telegram-bot-api')
-const { parse } = require('path')
 const token = process.env.BOT_TOKEN
+// const TelegramBot = require('node-telegram-bot-api')
+// const bot = new TelegramBot(token, { polling: true })
 var port = process.env.PORT || 8443;
 var host = process.env.HOST;
-// const bot = new TelegramBot(token, { webHook: { port: port, host: host } })
 var TelegramBot = require('node-telegram-bot-api'),
     port = process.env.PORT || 443,
     host = '0.0.0.0',  // probably this change is not required
     externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
-    // token = process.env.TOKEN,
     bot = new TelegramBot(token, { webHook: { port, host } });
 bot.setWebHook(externalUrl + ':443/bot' + token);
 
-// const bot = new TelegramBot(token, { polling: true })
 let schedules = []
 
 let activesStringss = []
@@ -354,7 +351,6 @@ let buysCount = new Map()
 let buyUsersIds = []
 
 const onOpen = () => {
-    if (log)
         console.log(`Connected with websocket..`)
 }
 
@@ -417,8 +413,6 @@ const getLeaders = (ws) => {
         }, "request_id": ""
     }
 
-    if (log)
-        console.log(JSON.stringify(data))
     ws.send(JSON.stringify(data))
 }
 
@@ -506,7 +500,7 @@ const onMessage = e => {
     // if (ws && ws.readyState === WebSocket.OPEN) {
     const message = JSON.parse(e.data)
 
-    if (logg && message.name != 'instrument-quotes-generated' && message.name != 'api_option_init_all_result')
+    if (message.name != 'instrument-quotes-generated' && message.name != 'api_option_init_all_result')
         console.log('RES = ' + e.data)
 
     if (sessionBalance >= StopWin) {
@@ -519,8 +513,6 @@ const onMessage = e => {
     }
 
     if (buyUsersIds.includes(message.request_id)) {
-        if (log)
-            console.log('RED = ' + e.data)
         const index = buyUsersIds.indexOf(message.request_id);
         if (index > -1) {
             buyUsersIds.splice(index, 1);
@@ -616,8 +608,6 @@ const onMessage = e => {
         currentTime = message.msg
         currentTimemmss = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').format("HH:mm")
         currentTimemmssDate = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').format("YYYY-MM-DD HH:mm:ss")
-        if (log)
-            console.log(currentTimemmssDate)
 
     }
     if (schedules.length > 0)
