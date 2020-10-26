@@ -5,7 +5,7 @@ const WebSocket = require('ws')
 require('dotenv').config()
 const Players = require('./mongo')
 
-const TelegramBot = require('node-telegram-bot-api')
+// const TelegramBot = require('node-telegram-bot-api')
 const { parse } = require('path')
 const token = process.env.BOT_TOKEN
 var port = process.env.PORT || 8443;
