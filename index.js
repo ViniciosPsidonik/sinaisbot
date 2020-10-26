@@ -8,7 +8,9 @@ const Players = require('./mongo')
 const TelegramBot = require('node-telegram-bot-api')
 const { parse } = require('path')
 const token = process.env.BOT_TOKEN
-const bot = new TelegramBot(token, { polling: true })
+var port = process.env.PORT || 8443;
+var host = process.env.HOST;
+const bot = new TelegramBot(token, { webHook: { port: port, host: host } })
 let schedules = []
 
 let activesStringss = []
@@ -45,7 +47,7 @@ bot.on('message', async msg => {
                     } else {
                         bot.sendMessage(msg.chat.id, invalidValue)
                     }
-                    
+
                 }
                 else if (playersMap.get(msg.chat.id).editOptionValue == '4') {
                     if (isNumeric(msg.text.trim())) {
@@ -744,7 +746,7 @@ function optionClosed(message) {
 
             let profitAmount = message.msg.profit_amount - value.amount
             let sessionBalance = value.sessionBalance
-            
+
             if (typeof sessionBalance != 'undefined') {
                 sessionBalance = parseFloat(sessionBalance)
                 sessionBalance += parseFloat(profitAmount)
