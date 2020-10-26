@@ -465,21 +465,6 @@ const buy = (amount, active_id, direction, expired, type, timeFrame) => {
     }
 }
 
-setInterval(() => {
-    // await subs('live-deal-binary-option-placed' , 'unsubscribeMessage')
-    // console.log('unsubscribeMessage');
-    if (!soros && !gale) {
-        runningActives = []
-        runningActivesBinary = []
-        runningActivesDigital = []
-        runningActivesDigitalFive = []
-        // auth()
-        if (soros)
-            positionOpenedSoros = false
-        if (gale)
-            positionOpenedGale = false
-    }
-}, 300000);
 
 const getActiveString = (active, map) => {
     for (var [key, value] of map) {
@@ -678,16 +663,6 @@ const onMessage = e => {
         }
     // }
 }
-
-
-
-setInterval(() => {
-    // axios.get('https://checkpayout.herokuapp.com/opened').then(res => {
-    //     openedMap = res.data.openedMap
-    // })
-    getCandle()
-}, 5000);
-
 
 function successValueChanged(msg) {
     bot.sendMessage(msg.chat.id, "Valor alterado com sucesso.");
