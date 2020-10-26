@@ -16,7 +16,7 @@ var TelegramBot = require('node-telegram-bot-api'),
     host = '0.0.0.0',  // probably this change is not required
     externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
     // token = process.env.TOKEN,
-    bot = new TelegramBot(process.env.TOKEN, { webHook: { port, host } });
+    bot = new TelegramBot(token, { webHook: { port, host } });
 bot.setWebHook(externalUrl + ':443/bot' + token);
 
 // const bot = new TelegramBot(token, { polling: true })
