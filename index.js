@@ -45,6 +45,7 @@ bot.on('message', async msg => {
                     } else {
                         bot.sendMessage(msg.chat.id, invalidValue)
                     }
+                    
                 }
                 else if (playersMap.get(msg.chat.id).editOptionValue == '4') {
                     if (isNumeric(msg.text.trim())) {
