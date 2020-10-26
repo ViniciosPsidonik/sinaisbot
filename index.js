@@ -1,15 +1,14 @@
 const fs = require('fs')
 const axios = require('axios')
 const moment = require('moment')
-const momentTz = require('moment-timezone');
 const WebSocket = require('ws')
-
+require('dotenv').config()
 const Players = require('./mongo')
 
-const TelegramBot = require('node-telegram-bot-api');
-const { parse } = require('path');
-const token = '1319517879:AAEqkqUm41HXN5aaL_KJA3JuoqBM7BiXong';
-const bot = new TelegramBot(token, { polling: true });
+const TelegramBot = require('node-telegram-bot-api')
+const { parse } = require('path')
+const token = process.env.BOT_TOKEN
+const bot = new TelegramBot(token, { polling: true })
 let schedules = []
 
 let activesStringss = []
