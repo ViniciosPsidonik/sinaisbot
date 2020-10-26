@@ -10,7 +10,16 @@ const { parse } = require('path')
 const token = process.env.BOT_TOKEN
 var port = process.env.PORT || 8443;
 var host = process.env.HOST;
-const bot = new TelegramBot(token, { webHook: { port: port, host: host } })
+// const bot = new TelegramBot(token, { webHook: { port: port, host: host } })
+var TelegramBot = require('node-telegram-bot-api'),
+    port = process.env.PORT || 443,
+    host = '0.0.0.0',  // probably this change is not required
+    externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
+    token = process.env.TOKEN,
+    bot = new TelegramBot(process.env.TOKEN, { webHook: { port, host } });
+bot.setWebHook(externalUrl + ':443/bot' + token);
+
+// const bot = new TelegramBot(token, { polling: true })
 let schedules = []
 
 let activesStringss = []
@@ -486,9 +495,6 @@ const getActiveString = (active, map) => {
     }
 }
 
-setInterval(() => {
-    b()
-}, 240000)//60000
 
 let currentTime
 let currentTimemmssDate
