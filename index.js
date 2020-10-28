@@ -98,7 +98,7 @@ function getPlayersDB(action) {
     })
 }
 
-setTimeout(() => {
+setTimeout(async () => {
     // getPlayersDB('stop')
     await getPlayersDB()
     await setWS()
@@ -215,7 +215,7 @@ bot.on('message', async msg => {
                 }
                 else if (msg.text.toLowerCase().trim() == '5') {
                     playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
-                    bot.sendMessage(msg.chat.id, "Informe seu stop Loss.")
+                    bot.sendMessage(msg.chat.id, "Informe seu stop Loss. (valor positivo)")
                 }
                 else if (msg.text.toLowerCase().trim() == '6') {
                     playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
@@ -296,7 +296,7 @@ bot.on('message', async msg => {
                 if (isNumeric(msg.text.trim())) {
                     playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getStopLoss', stopWin: parseFloat(msg.text.trim()) })
                     console.log(playersMap);
-                    bot.sendMessage(msg.chat.id, "Informe seu stop Loss.")
+                    bot.sendMessage(msg.chat.id, "Informe seu stop Loss. (valor positivo)")
                 } else {
                     bot.sendMessage(msg.chat.id, invalidValue)
                 }
