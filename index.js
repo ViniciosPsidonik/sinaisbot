@@ -1120,6 +1120,7 @@ const auth = (login, password, chatId, state) => {
         bot.sendMessage(chatId, 'Erro ao se conectar..., por favor informe o Login novamente.')
         console.log('Erro ao se conectar... Tente novamente')
         console.log(playersMap);
+        
     })
     return ws
 }
