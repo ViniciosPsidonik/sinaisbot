@@ -602,6 +602,7 @@ const onMessage = e => {
         const active = message.request_id.split('/')[0]
         buysCount.set(parseInt(active), buysCount.get(parseInt(active)) - 1)
         console.log(`Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
+        bot.sendMessage(parseInt(message.request_id), `Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
         console.log('RES = ' + e.data)
         if (soros)
             positionOpenedSoros = false
@@ -613,6 +614,7 @@ const onMessage = e => {
         const active = message.request_id.split('/')[0]
         buysCount.set(parseInt(active), buysCount.get(parseInt(active)) - 1)
         console.log(`Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
+        bot.sendMessage(parseInt(message.request_id), `Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
         console.log('RES = ' + e.data)
         if (soros)
             positionOpenedSoros = false
