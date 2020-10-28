@@ -669,7 +669,8 @@ const onMessage = e => {
                             timeFrame = timeFrame - resto
                         }
                     }
-                    hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').add(timeFrame, 'm').format(" HH:mm")
+                    hourmm = moment.unix(currentTime / 1000).utcOffset(0).add(1, 's').add(timeFrame, 'm').add(3, 'h').format(" HH:mm")
+                    // hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').add(timeFrame, 'm').format(" HH:mm")
                     schedules[index] = element + hourmm
                 }
 
