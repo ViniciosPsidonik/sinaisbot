@@ -694,10 +694,9 @@ const onMessage = e => {
                 }
 
                 // console.log(schedules[index]);
-
-                console.log(currentTimemmss);
-                console.log(hourmm);
-                console.log("==========");
+                // console.log(currentTimemmss);
+                // console.log(hourmm);
+                // console.log("==========");
 
                 if (currentTimemmss && currentTimemmss.includes(hourmm.trim())) {
                     const active = getActiveFor(element)
@@ -1076,10 +1075,10 @@ const loginAsync = async (ssid, ws, chatId) => {
 let logged
 const doLogin = (ssid, ws, chatId) => {
     return new Promise((resolve, reject) => {
-        setInterval(() => {
+        const loginIntervallll = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId.toString() }))
-                logged = true
+                clearInterval(loginIntervallll)
                 resolve()
             } 
         }, 300);
@@ -1096,13 +1095,7 @@ const auth = (login, password, chatId, state) => {
         password: password
     }).then((response) => {
         ssid = response.data.ssid
-        // const loginn = setInterval(() => {
-        //     if (logged) {
-        //         clearInterval(loginn)
-        //         return
-        //     }
         loginAsync(ssid, ws, chatId)
-        // }, 1000);
         playersMap.set(chatId, { ...playersMap.get(chatId), lastAction: state, ws, lastTradeId: new Array() });
         console.log(playersMap);
         if (state != 'ok' && state != null) {
