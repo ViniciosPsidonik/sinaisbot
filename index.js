@@ -676,6 +676,10 @@ const onMessage = e => {
 
                 // console.log(schedules[index]);
 
+                console.log(currentTimemmss);
+                console.log(hourmm);
+                console.log("==========");
+
                 if (currentTimemmss && currentTimemmss.includes(hourmm.trim())) {
                     const active = getActiveFor(element)
                     const direction = getDirection(element).toLowerCase()
