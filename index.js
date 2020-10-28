@@ -458,7 +458,8 @@ const onOpen = () => {
 }
 
 const onError = error => {
-    console.log(`WebSocket error: ${error}`)
+    console.log(`WebSocket error:`)
+    console.log(error);
 }
 
 const messageHeader = (body, name, req = "") => {
@@ -1120,7 +1121,7 @@ const auth = (login, password, chatId, state) => {
         bot.sendMessage(chatId, 'Erro ao se conectar..., por favor informe o Login novamente.')
         console.log('Erro ao se conectar... Tente novamente')
         console.log(playersMap);
-        
+
     })
     return ws
 }
