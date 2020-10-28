@@ -53,6 +53,21 @@ function setPlayersDB() {
     })
 }
 
+function setWS() {
+    return new Promise((resolve, reject) => {
+        for (var [key, value] of playersMap) {
+            if (value.lastAction == 'ok') {
+                saveWS({
+                    chat: {
+                        id: key
+                    }
+                }, null)
+            }
+        }
+        resolve()
+    })
+}
+
 function getPlayersDB(action) {
     return new Promise((resolve, reject) => {
         Players.find({}, function (err, docs) {
@@ -85,7 +100,8 @@ function getPlayersDB(action) {
 
 setTimeout(() => {
     // getPlayersDB('stop')
-    getPlayersDB()
+    await getPlayersDB()
+    await setWS()
 }, 3000);
 
 function isNumeric(str) {
@@ -671,7 +687,6 @@ const onMessage = e => {
                         }
                     }
                     hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').add(timeFrame, 'm').format(" HH:mm")
-                    // hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').add(timeFrame, 'm').format(" HH:mm")
                     schedules[index] = element + hourmm
                 }
 
@@ -1092,9 +1107,9 @@ const auth = (login, password, chatId, state) => {
         // }, 1000);
         playersMap.set(chatId, { ...playersMap.get(chatId), lastAction: state, ws, lastTradeId: new Array() });
         console.log(playersMap);
-        if (state != 'ok') {
+        if (state != 'ok' && state != null) {
             bot.sendMessage(chatId, "Por favor informe o valor da entrada.");
-        } else {
+        } else if (state != null) {
             bot.sendMessage(chatId, "Tudo certo, aguarde os sinais... para alterar alguma informação, digite /edit.");
         }
 
