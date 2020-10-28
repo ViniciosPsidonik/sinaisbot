@@ -345,12 +345,12 @@ bot.on('message', async msg => {
             }
             else if (msg.text.toLowerCase() == ('/stop')) {
                 bot.sendMessage(msg.chat.id, "Robo paralisado, digite /start para iniciar novamente.");
-                console.log(playersMap.get(msg.chat.id));
                 if (playersMap.get(msg.chat.id).ws) {
                     playersMap.get(msg.chat.id).ws.terminate()
                     playersMap.get(msg.chat.id).ws = null
                 }
                 playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'stop' })
+                console.log(playersMap.get(msg.chat.id));
             } else if (msg.text.toLowerCase() == ('/edit') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'ok' || msg.text.toLowerCase() == ('/edit') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'stop') {
                 playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), actionBeforeEdit: playersMap.get(msg.chat.id).lastAction, lastAction: 'editOption' })
                 bot.sendMessage(msg.chat.id, "Qual das informações deseja alterar?\n" + `1-Login -> ${playersMap.get(msg.chat.id).login} \n2-Senha -> ${playersMap.get(msg.chat.id).pass} \n3-Valor entrada -> ${playersMap.get(msg.chat.id).amount} \n4-StopWin -> ${playersMap.get(msg.chat.id).stopWin} \n5-StopLoss -> ${playersMap.get(msg.chat.id).stopLoss} \n6-Tipo da Conta -> ${playersMap.get(msg.chat.id).conta} \n7-Utilizar Gale -> ${playersMap.get(msg.chat.id).gale ? 'Sim' : 'Não'} \n8-Fator do Gale -> ${playersMap.get(msg.chat.id).galeFactor} \n9-Nível do Gale -> ${playersMap.get(msg.chat.id).galeLevel} \n10-Sair`)
@@ -668,8 +668,8 @@ const onMessage = e => {
 
     if (message.name == 'heartbeat') {
         currentTime = message.msg
-        currentTimemmss = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').format("HH:mm")
-        currentTimemmssDate = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').format("YYYY-MM-DD HH:mm:ss")
+        currentTimemmss = moment.unix(currentTime / 1000).utcOffset(-3).add(2, 's').format("HH:mm")
+        currentTimemmssDate = moment.unix(currentTime / 1000).utcOffset(-3).add(2, 's').format("YYYY-MM-DD HH:mm:ss")
 
     }
     if (schedules.length > 0)
@@ -689,7 +689,7 @@ const onMessage = e => {
                             timeFrame = timeFrame - resto
                         }
                     }
-                    hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(1, 's').add(timeFrame, 'm').format(" HH:mm")
+                    hourmm = moment.unix(currentTime / 1000).utcOffset(-3).add(2, 's').add(timeFrame, 'm').format(" HH:mm")
                     schedules[index] = element + hourmm
                 }
 
