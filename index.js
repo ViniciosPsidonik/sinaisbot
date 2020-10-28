@@ -7,7 +7,6 @@ const Players = require('./mongo')
 
 const token = process.env.BOT_TOKEN
 
-
 //--------------------------------------------
 
 // const TelegramBot = require('node-telegram-bot-api')
@@ -70,7 +69,7 @@ function setWS() {
                     chat: {
                         id: key
                     }
-                }, null)
+                }, 'ok')
             }
         }
         resolve()
@@ -1007,12 +1006,12 @@ const doLogin = (ssid, ws, chatId) => {
                 ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId.toString() }))
                 clearInterval(loginIntervallll)
                 resolve()
-            } 
+            }
         }, 300);
     })
 }
 
-const auth = (login, password, chatId, state) => {
+const auth = (login, password, chatId, state, isFirst) => {
     let ws = new WebSocket(url)
     ws.onopen = onOpen
     ws.onerror = onError
@@ -1025,9 +1024,9 @@ const auth = (login, password, chatId, state) => {
         loginAsync(ssid, ws, chatId)
         playersMap.set(chatId, { ...playersMap.get(chatId), lastAction: state, ws, lastTradeId: new Array() });
         console.log(playersMap);
-        if (state != 'ok' && state != null) {
+        if (state != 'ok' && !isFirst) {
             bot.sendMessage(chatId, "Por favor informe o valor da entrada.");
-        } else if (state != null) {
+        } else if (!isFirst) {
             bot.sendMessage(chatId, "Tudo certo, aguarde os sinais... para alterar alguma informação, digite /edit.");
         }
 
