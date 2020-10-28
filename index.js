@@ -1076,18 +1076,13 @@ const loginAsync = async (ssid, ws, chatId) => {
 let logged
 const doLogin = (ssid, ws, chatId) => {
     return new Promise((resolve, reject) => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId.toString() }))
-            logged = true
-            resolve()
-        } else {
-            ws.terminate()
-            ws = new WebSocket(url)
-            ws.onopen = onOpen
-            ws.onerror = onError
-            ws.onmessage = onMessage
-            resolve()
-        }
+        setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId.toString() }))
+                logged = true
+                resolve()
+            } 
+        }, 300);
     })
 }
 
