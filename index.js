@@ -83,7 +83,9 @@ function getPlayersDB(action) {
     })
 }
 
-getPlayersDB('stop')
+setTimeout(() => {
+    getPlayersDB('stop')
+}, 3000);
 
 function isNumeric(str) {
     if (typeof str != "string") return false // we only process strings!  
