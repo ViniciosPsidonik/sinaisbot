@@ -6,17 +6,22 @@ require('dotenv').config()
 const Players = require('./mongo')
 
 const token = process.env.BOT_TOKEN
-// const TelegramBot = require('node-telegram-bot-api')
-// const { setInterval } = require('timers')
-// const bot = new TelegramBot(token, { polling: true })
-var port = process.env.PORT || 8443;
-var host = process.env.HOST;
-var TelegramBot = require('node-telegram-bot-api'),
-    port = process.env.PORT || 443,
-    host = '0.0.0.0',  // probably this change is not required
-    externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
-    bot = new TelegramBot(token, { webHook: { port, host } });
-bot.setWebHook(externalUrl + ':443/bot' + token);
+const TelegramBot = require('node-telegram-bot-api')
+const { setInterval } = require('timers')
+const bot = new TelegramBot(token, { polling: true })
+
+//--------------------------------------------
+
+// var port = process.env.PORT || 8443;
+// var host = process.env.HOST;
+// var TelegramBot = require('node-telegram-bot-api'),
+//     port = process.env.PORT || 443,
+//     host = '0.0.0.0',  // probably this change is not required
+//     externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
+//     bot = new TelegramBot(token, { webHook: { port, host } });
+// bot.setWebHook(externalUrl + ':443/bot' + token);
+
+//--------------------------------------------
 
 let schedules = []
 
@@ -80,7 +85,7 @@ function getPlayersDB(action) {
                     const element = docs[index]
                     playersMap.set(element.userId, {
                         ...playersMap.get(element.userId),
-                        lastAction: action ? action : element.lastAction,
+                        lastAction: element.lastAction,
                         login: element.login,
                         pass: element.pass,
                         amount: element.amount,
@@ -899,88 +904,6 @@ function profileStuf(message, name, req) {
     }
 
 }
-
-function subs(name, subsType) {
-    if (binarias) {
-        if (payout)
-            ws.send(JSON.stringify({ "name": "api_option_init_all", "msg": "", "request_id": "" }))
-        for (let i = 0; i < otcActives.length; i++) {
-            subscribeLiveDeal(name, otcActives[i], 'turbo', null, subsType)
-        }
-
-        if (binariasTimes.includes("M5+"))
-            for (let i = 0; i < otcActives.length; i++) {
-                subscribeLiveDeal(name, otcActives[i], 'binary', null, subsType)
-            }
-    }
-    if (digital) {
-        name = 'live-deal-digital-option'
-        if (digitalTimes.includes("M1"))
-            for (let i = 0; i < otcActivesDigital.length; i++) {
-                subscribeLiveDeal(name, otcActivesDigital[i], 'digital', '1', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 60, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-        if (digitalTimes.includes("M5"))
-            for (let i = 0; i < otcActivesDigital.length; i++) {
-                subscribeLiveDeal(name, otcActivesDigital[i], 'digital', '5', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 300, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-
-        if (digitalTimes.includes("M15"))
-            for (let i = 0; i < otcActivesDigital.length; i++) {
-                subscribeLiveDeal(name, otcActivesDigital[i], 'digital', '15', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 900, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-    }
-
-    if (binarias) {
-        name = 'live-deal-binary-option-placed'
-        for (let i = 0; i < activesMap.length; i++) {
-            subscribeLiveDeal(name, activesMap[i], 'turbo', null, subsType)
-        }
-        if (binariasTimes.includes("M5+"))
-            for (let i = 0; i < activesMap.length; i++) {
-                subscribeLiveDeal(name, activesMap[i], 'binary', null, subsType)
-            }
-    }
-    if (digital) {
-        name = 'live-deal-digital-option'
-        if (digitalTimes.includes("M1"))
-            for (let i = 0; i < activesMapDigital.length; i++) {
-                subscribeLiveDeal(name, activesMapDigital[i], 'digital', '1', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 60, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-
-        if (digitalTimes.includes("M5"))
-            for (let i = 0; i < activesMapDigital.length; i++) {
-                subscribeLiveDeal(name, activesMapDigital[i], 'digital', '5', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 300, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-
-        if (digitalTimes.includes("M15"))
-            for (let i = 0; i < activesMapDigital.length; i++) {
-                subscribeLiveDeal(name, activesMapDigital[i], 'digital', '15', subsType)
-                if (payout)
-                    ws.send(JSON.stringify({ "name": "subscribeMessage", "msg": { "name": "instrument-quotes-generated", "params": { "routingFilters": { "active": otcActivesDigital[i], "expiration_period": 900, "kind": "digital-option" } }, "version": "1.0" }, "request_id": "" }))
-            }
-    }
-}
-
-function millisToMinutesAndSeconds(millis) {
-    var minutes = Math.floor(millis / 60000);
-    var seconds = ((millis % 60000) / 1000).toFixed(0);
-    return {
-        minutes,
-        seconds: parseInt((seconds < 10 ? '0' : '') + seconds)
-    }
-}
-
-
 
 const activesMap = [108, 7, 943, 101, 7, 943, 101, 944, 99, 107, 2, 4, 1, 104, 102, 103, 3, 947, 5, 8, 100, 72, 6, 168, 105, 212, 945]
 const activesMapDigital = [7, 943, 7, 943, 101, 944, 99, 107, 2, 4, 1, 104, 102, 103, 3, 947, 5, 8, 100, 72, 6, 168, 105, 945]
