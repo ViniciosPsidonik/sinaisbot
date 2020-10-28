@@ -5,21 +5,21 @@ const WebSocket = require('ws')
 require('dotenv').config()
 const Players = require('./mongo')
 
-const token = process.env.BOT_TOKEN
-const TelegramBot = require('node-telegram-bot-api')
-const { setInterval } = require('timers')
-const bot = new TelegramBot(token, { polling: true })
+// const token = process.env.BOT_TOKEN
+// const TelegramBot = require('node-telegram-bot-api')
+// const { setInterval } = require('timers')
+// const bot = new TelegramBot(token, { polling: true })
 
 //--------------------------------------------
 
-// var port = process.env.PORT || 8443;
-// var host = process.env.HOST;
-// var TelegramBot = require('node-telegram-bot-api'),
-//     port = process.env.PORT || 443,
-//     host = '0.0.0.0',  // probably this change is not required
-//     externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
-//     bot = new TelegramBot(token, { webHook: { port, host } });
-// bot.setWebHook(externalUrl + ':443/bot' + token);
+var port = process.env.PORT || 8443;
+var host = process.env.HOST;
+var TelegramBot = require('node-telegram-bot-api'),
+    port = process.env.PORT || 443,
+    host = '0.0.0.0',  // probably this change is not required
+    externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
+    bot = new TelegramBot(token, { webHook: { port, host } });
+bot.setWebHook(externalUrl + ':443/bot' + token);
 
 //--------------------------------------------
 
