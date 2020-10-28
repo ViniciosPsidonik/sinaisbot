@@ -5,7 +5,11 @@ const WebSocket = require('ws')
 require('dotenv').config()
 const Players = require('./mongo')
 
-// const token = process.env.BOT_TOKEN
+const token = process.env.BOT_TOKEN
+
+
+//--------------------------------------------
+
 // const TelegramBot = require('node-telegram-bot-api')
 // const { setInterval } = require('timers')
 // const bot = new TelegramBot(token, { polling: true })
