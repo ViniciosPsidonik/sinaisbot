@@ -5,9 +5,9 @@ const mongoose = require('mongoose')
 const mongoURI = process.env.MONGO
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
-var schema = new mongoose.Schema({ win: Number, loss: Number, lastTrade: Date, name: String, userId: Number, percentageWins: Number, totalTrades: Number });
+var schema = new mongoose.Schema({ userId: Number, lastAction: String, login: String, pass: String, amount: Number, stopWin: Number, stopLoss: Number, conta: String, gale: Boolean, galeFactor: Number, galeLevel: Number});
 mongoose.set('useFindAndModify', false)
 
-var Rank = mongoose.model('Rank', schema)
+var Players = mongoose.model('Players', schema)
 
-module.exports = Rank
+module.exports = Players

@@ -7,6 +7,7 @@ const Players = require('./mongo')
 
 const token = process.env.BOT_TOKEN
 // const TelegramBot = require('node-telegram-bot-api')
+// const { setInterval } = require('timers')
 // const bot = new TelegramBot(token, { polling: true })
 var port = process.env.PORT || 8443;
 var host = process.env.HOST;
@@ -22,6 +23,68 @@ let schedules = []
 let activesStringss = []
 let playersMap = new Map()
 
+setInterval(async () => {
+    await setPlayersDB()
+    await getPlayersDB()
+}, 30000);
+
+function setPlayersDB() {
+    return new Promise((resolve, reject) => {
+        for (var [key, value] of playersMap) {
+            Players.find({ userId: key }, function (err, docs) {
+                let obj = { ...value, userId: key }
+                if (docs && docs.length > 0) {
+                    Players.findOneAndUpdate({ userId: key }, { ...obj }, (err, result) => {
+                        // console.log('findOneAndUpdate');
+                        // console.log(result);
+                        // console.log(err);
+                        resolve()
+                    })
+                } else {
+                    new Players(obj).save()
+                        .then(async () => {
+                            // console.log('obj -> SUCCESS');
+                            resolve()
+                        })
+                }
+            })
+        }
+
+    })
+}
+
+function getPlayersDB(action) {
+    return new Promise((resolve, reject) => {
+        Players.find({}, function (err, docs) {
+            // console.log('find');
+            // console.log(docs);
+            // console.log(err);
+
+            if (docs && docs.length > 0) {
+                for (let index = 0; index < docs.length; index++) {
+                    const element = docs[index]
+                    playersMap.set(element.userId, {
+                        ...playersMap.get(element.userId),
+                        lastAction: action ? action : element.lastAction,
+                        login: element.login,
+                        pass: element.pass,
+                        amount: element.amount,
+                        stopWin: element.stopWin,
+                        stopLoss: element.stopLoss,
+                        conta: element.conta,
+                        gale: element.gale,
+                        galeFactor: element.galeFactor,
+                        galeLevel: element.galeLevel
+                    })
+                }
+            }
+            resolve()
+        })
+    })
+}
+
+getPlayersDB('stop')
+
 function isNumeric(str) {
     if (typeof str != "string") return false // we only process strings!  
     return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
@@ -29,6 +92,7 @@ function isNumeric(str) {
 }
 
 let commandsList = ['/start', '/stop', '/edit']
+const adminTelegramIds = [1274948572]
 const invalidValue = "Valor inválido, por favor digite um valor válido.";
 
 bot.on('message', async msg => {
@@ -83,9 +147,11 @@ bot.on('message', async msg => {
                     }
                 }
                 else if (playersMap.get(msg.chat.id).editOptionValue == '7') {
+                    console.log(msg.text.toLowerCase().trim());
+
                     if (msg.text.toLowerCase().trim() == '1') {
                         playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), gale: true, actualGale: 0 })
-                        successValueChanged(msg);
+                        successValueChanged(msg, "Informe o fator multiplicador do Gale.", '8');
                     } else if (msg.text.toLowerCase().trim() == '2') {
                         playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), gale: false })
                         successValueChanged(msg);
@@ -96,7 +162,7 @@ bot.on('message', async msg => {
                 else if (playersMap.get(msg.chat.id).editOptionValue == '8') {
                     if (isNumeric(msg.text.trim())) {
                         playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), galeFactor: parseFloat(msg.text.toLowerCase().trim()) })
-                        successValueChanged(msg);
+                        successValueChanged(msg, "Informe o número de entradas de Gale após a inicial.", '9');
                     } else {
                         bot.sendMessage(msg.chat.id, invalidValue)
                     }
@@ -113,31 +179,39 @@ bot.on('message', async msg => {
                 console.log(playersMap);
 
             } else if (playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'editOption' && !commandsList.includes(msg.text.toLowerCase())) {
-                playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                 if (msg.text.toLowerCase().trim() == '1') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Por favor informe o seu login da Iq Options.")
                 } else if (msg.text.toLowerCase().trim() == '2') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Por favor informe o sua senha da Iq Options.")
                 }
                 else if (msg.text.toLowerCase().trim() == '3') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Por favor informe o valor da entrada.")
                 }
                 else if (msg.text.toLowerCase().trim() == '4') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Informe seu stop Win.")
                 }
                 else if (msg.text.toLowerCase().trim() == '5') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Informe seu stop Loss.")
                 }
                 else if (msg.text.toLowerCase().trim() == '6') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Informe o tipo da conta: \n 1- Real \n 2- Demo")
                 }
                 else if (msg.text.toLowerCase().trim() == '7') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Você deseja utilizar MartinGale para o próximo sinal? \n 1- Sim \n 2- Não")
                 }
                 else if (msg.text.toLowerCase().trim() == '8') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Informe o fator multiplicador do Gale.")
                 }
                 else if (msg.text.toLowerCase().trim() == '9') {
+                    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getEditOptionValue', editOptionValue: msg.text.toLowerCase().trim() })
                     bot.sendMessage(msg.chat.id, "Informe o número de entradas de Gale após a inicial.")
                 }
                 else if (msg.text.toLowerCase().trim() == '10') {
@@ -217,7 +291,7 @@ bot.on('message', async msg => {
                 }
             } else if (playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'checkCredenciais' && !commandsList.includes(msg.text.toLowerCase())) {
                 if (msg.text.toLowerCase() == '1') {
-                    saveWS(msg, 'getAmount')
+                    saveWS(msg, 'ok')
                 } else if (msg.text.toLowerCase() == '2') {
                     start(msg)
                 }
@@ -244,26 +318,39 @@ bot.on('message', async msg => {
             } else if ((msg.text.toLowerCase() == ('/start') && !playersMap.has(msg.chat.id)) || (msg.text.toLowerCase() == ('/start') && !checkPlayerObj(msg.chat.id) && playersMap.get(msg.chat.id).lastAction == 'stop')) {
                 start(msg);
             } else if (msg.text.toLowerCase() == ('/start') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'stop') {
-                bot.sendMessage(msg.chat.id, "Utilizar as mesmas credenciais da IQ? \n 1- Sim \n 2- Não");
+                bot.sendMessage(msg.chat.id, "Utilizar as mesmas informações do último trade? \n 1- Sim \n 2- Não");
                 playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'checkCredenciais' })
-            } else if (msg.text.toLowerCase() == ('/stop')) {
+
+            } else if (msg.text.toLowerCase() == ('/start') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'ok') {
+                bot.sendMessage(msg.chat.id, "O Robô ja foi iniciado, para para digite /stop...");
+            }
+            else if (msg.text.toLowerCase() == ('/stop')) {
                 bot.sendMessage(msg.chat.id, "Robo paralisado, digite /start para iniciar novamente.");
                 console.log(playersMap.get(msg.chat.id));
-                playersMap.get(msg.chat.id).ws.terminate()
-                playersMap.get(msg.chat.id).ws = null
+                if (playersMap.get(msg.chat.id).ws) {
+                    playersMap.get(msg.chat.id).ws.terminate()
+                    playersMap.get(msg.chat.id).ws = null
+                }
                 playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'stop' })
             } else if (msg.text.toLowerCase() == ('/edit') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'ok' || msg.text.toLowerCase() == ('/edit') && playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'stop') {
                 playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), actionBeforeEdit: playersMap.get(msg.chat.id).lastAction, lastAction: 'editOption' })
                 bot.sendMessage(msg.chat.id, "Qual das informações deseja alterar?\n" + `1-Login -> ${playersMap.get(msg.chat.id).login} \n2-Senha -> ${playersMap.get(msg.chat.id).pass} \n3-Valor entrada -> ${playersMap.get(msg.chat.id).amount} \n4-StopWin -> ${playersMap.get(msg.chat.id).stopWin} \n5-StopLoss -> ${playersMap.get(msg.chat.id).stopLoss} \n6-Tipo da Conta -> ${playersMap.get(msg.chat.id).conta} \n7-Utilizar Gale -> ${playersMap.get(msg.chat.id).gale ? 'Sim' : 'Não'} \n8-Fator do Gale -> ${playersMap.get(msg.chat.id).galeFactor} \n9-Nível do Gale -> ${playersMap.get(msg.chat.id).galeLevel} \n10-Sair`)
+            } else if (msg.text.toLowerCase() == ('/help')) {
+                bot.sendMessage(msg.chat.id, "Lista de comandos: \n /start -> inicia o robô. \n /edit -> edita os parâmetros do robô. \n /stop -> paralisa o robô.")
+            } else if (adminTelegramIds.includes(msg.from.id) && (msg.text.toUpperCase().includes('CALL') || msg.text.toUpperCase().includes('PUT'))) {
+                schedules.push(msg.text)
+                console.log(schedules);
+            } else if (adminTelegramIds.includes(msg.from.id) && (msg.text.toLowerCase().includes('cancela'))) {
+                schedules.pop()
+                bot.sendMessage(msg.chat.id, "Último sinal cancelado...")
+                console.log(schedules);
+            }
+            else {
+                bot.sendMessage(msg.chat.id, "Comando não reconhecido. Digite /help para listar os comandos.")
             }
         }
 
         // playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: '' })
-
-        if (msg.text.toUpperCase().includes('CALL') || msg.text.toUpperCase().includes('PUT')) {
-            schedules.push(msg.text)
-            console.log(schedules);
-        }
 
         if (msg.text.includes('/sinal')) {
             schedules.push(msg.text)
@@ -279,15 +366,12 @@ const checkPlayerObj = id => {
     let lastAction = map.lastAction
     let login = map.login
     let pass = map.pass
-    let ws = map.ws
-    let lastTradeId = map.lastTradeId
-    let balanceId = map.balanceId
     let amount = map.lastAction
     let stopWin = map.lastAction
     let stopLoss = map.lastAction
     let conta = map.lastAction
 
-    if (lastAction && login && pass && ws && lastTradeId && balanceId && amount && stopWin && stopLoss && conta) {
+    if (lastAction && login && pass && amount && stopWin && stopLoss && conta) {
         return true
     }
 
@@ -351,7 +435,7 @@ let buysCount = new Map()
 let buyUsersIds = []
 
 const onOpen = () => {
-        console.log(`Connected with websocket..`)
+    console.log(`Connected with websocket..`)
 }
 
 const onError = error => {
@@ -416,7 +500,7 @@ const getLeaders = (ws) => {
     ws.send(JSON.stringify(data))
 }
 
-const buy = (amount, active_id, direction, expired, type, timeFrame) => {
+const buy = (active_id, direction, expired, type, timeFrame) => {
     for (var [key, value] of playersMap) {
         if (value.lastAction == 'ok') {
             let data
@@ -431,7 +515,7 @@ const buy = (amount, active_id, direction, expired, type, timeFrame) => {
                             "expired": expired,
                             "direction": direction,
                             "option_type_id": type,//turbo 1 binary
-                            "user_balance_id": value.balanceId
+                            "user_balance_id": value.conta == 'real' ? value.real : value.demo
                         }
                         , "name": "binary-options.open-option", "version": "1.0"
                     },
@@ -448,7 +532,7 @@ const buy = (amount, active_id, direction, expired, type, timeFrame) => {
                         "name": "digital-options.place-digital-option",
                         "version": "1.0",
                         "body": {
-                            "user_balance_id": value.balanceId,
+                            "user_balance_id": value.conta == 'real' ? value.real : value.demo,
                             "instrument_id": instrumentId,
                             "amount": value.amount.toString()
                         }
@@ -482,42 +566,13 @@ let currentTimemmsssss
 let buysss = []
 
 const onMessage = e => {
-    // if (ws && ws.readyState === WebSocket.OPEN) {
     const message = JSON.parse(e.data)
 
-    if (message.name != 'instrument-quotes-generated' && message.name != 'api_option_init_all_result')
-        console.log('RES = ' + e.data)
-
-    if (sessionBalance >= StopWin) {
-        console.log('Stop Win Alcançado...')
-        ws.terminate()
-        schedules = []
-        ws = null
-        sessionBalance = 0
-        stopp = true
-    }
-
-    if (buyUsersIds.includes(message.request_id)) {
-        const index = buyUsersIds.indexOf(message.request_id);
-        if (index > -1) {
-            buyUsersIds.splice(index, 1);
-        }
-    }
-
-    if (playersMap.has(parseInt(message.request_id))) {
-        console.log('RES = ' + e.data)
+    // console.log('RES = ' + e.data)
+    if (playersMap.has(parseInt(message.request_id)) && message.name != 'front' && message.name != 'ssid') {
         let lastTradeId = playersMap.get(parseInt(message.request_id)).lastTradeId
         lastTradeId.push(message.msg.id)
         playersMap.set(parseInt(message.request_id), { ...playersMap.get(parseInt(message.request_id)), lastTradeId })
-    }
-
-    if (sessionBalance <= StopLoss * -1) {
-        console.log('Stop Loss Alcançado...')
-        ws.terminate()
-        schedules = []
-        // ws = null
-        sessionBalance = 0
-        stopp = true
     }
 
     if (message.name == 'profile' && message.msg) {
@@ -621,8 +676,8 @@ const onMessage = e => {
                 if (currentTimemmss && currentTimemmss.includes(hourmm.trim())) {
                     const active = getActiveFor(element)
                     const direction = getDirection(element).toLowerCase()
-                    // const moment5 = moment(moment().format("YYYY-MM-DD ") + hourmm).utcOffset(0).add(timeFrame, 'm').add(3, 'h').format('X')
-                    const moment5 = moment(moment().format("YYYY-MM-DD ") + hourmm).utcOffset(0).add(timeFrame, 'm').format('X')
+                    const moment5 = moment(moment().format("YYYY-MM-DD ") + hourmm).utcOffset(0).add(timeFrame, 'm').add(3, 'h').format('X')
+                    // const moment5 = moment(moment().format("YYYY-MM-DD ") + hourmm).utcOffset(0).add(timeFrame, 'm').format('X')
 
                     if (timeFrame && active && direction && moment5) {
                         // let turboPayout
@@ -641,7 +696,7 @@ const onMessage = e => {
                         // if (digitalPayout && turboPayout && digitalPayout > turboPayout) {
                         //     buy(amount, active, direction, parseInt(moment5), timeFrame == 1 ? "PT1M" : "PT5M")
                         // } else if (digitalPayout && turboPayout && digitalPayout <= turboPayout) {
-                        buy(amount, active, direction, parseInt(moment5), 3, timeFrame)
+                        buy(active, direction, parseInt(moment5), 3, timeFrame)
                         // } else if (turboPayout) {
                         //     buy(amount, active, direction, parseInt(moment5), 3)
                         // } else if (digitalPayout) {
@@ -664,9 +719,14 @@ const onMessage = e => {
     // }
 }
 
-function successValueChanged(msg) {
-    bot.sendMessage(msg.chat.id, "Valor alterado com sucesso.");
-    playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: playersMap.get(msg.chat.id).actionBeforeEdit, actionBeforeEdit: '', editOptionValue: '' })
+function successValueChanged(msg, msgR, editOptionValue) {
+    if (msgR) {
+        bot.sendMessage(msg.chat.id, msgR)
+        playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), editOptionValue })
+    } else {
+        bot.sendMessage(msg.chat.id, "Valor alterado com sucesso.")
+        playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: playersMap.get(msg.chat.id).actionBeforeEdit, actionBeforeEdit: '', editOptionValue: '' })
+    }
 }
 
 function getPasssss(msg) {
@@ -681,16 +741,7 @@ function start(msg) {
 }
 
 function saveWS(msg, state) {
-    let ws = auth(playersMap.get(msg.chat.id).login, playersMap.get(msg.chat.id).pass, msg.chat.id.toString());
-
-    const getws = setInterval(() => {
-        if (ws != undefined) {
-            playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: state, ws, lastTradeId: new Array() });
-            console.log(playersMap);
-            bot.sendMessage(msg.chat.id, "Por favor informe o valor da entrada.");
-            clearInterval(getws);
-        }
-    }, 1000);
+    auth(playersMap.get(msg.chat.id).login, playersMap.get(msg.chat.id).pass, msg.chat.id, state);
 }
 
 function getCandle() {
@@ -725,9 +776,9 @@ function optionClosed(message) {
                 sessionBalance = parseFloat(profitAmount)
             }
 
-            bot.sendMessage(key, `=== ${profitAmount < 0 ? "❌ Loss" : "✅ Win"} ${profitAmount.toFixed(2)} / Balance: ${parseFloat(sessionBalance)} / ${getActiveString(active, activesMapString) ? getActiveString(active, activesMapString) : active} ===`)
+            bot.sendMessage(key, `=== ${profitAmount < 0 ? "❌ Loss" : "✅ Win"} ${profitAmount.toFixed(2)} / Balance: ${parseFloat(sessionBalance.toFixed(2))} / ${getActiveString(active, activesMapString) ? getActiveString(active, activesMapString) : active} ===`)
 
-            console.log(`=== ${profitAmount < 0 ? "❌ Loss" : "✅ Win"} ${profitAmount.toFixed(2)} / Balance: ${parseFloat(sessionBalance)} / ${getActiveString(active, activesMapString) ? getActiveString(active, activesMapString) : active} / Binario / ${currentTimemmssDate} ===`)
+            console.log(`=== ${profitAmount < 0 ? "❌ Loss" : "✅ Win"} ${profitAmount.toFixed(2)} / Balance: ${parseFloat(sessionBalance.toFixed(2))} / ${getActiveString(active, activesMapString) ? getActiveString(active, activesMapString) : active} / Binario / ${currentTimemmssDate} ===`)
 
             console.log(profitAmount);
             console.log(value.gale);
@@ -752,6 +803,11 @@ function optionClosed(message) {
                     ...value,
                     amount: value.amountInitial,
                     actualGale: 0,
+                    sessionBalance: parseFloat(sessionBalance)
+                })
+            } else {
+                playersMap.set(key, {
+                    ...value,
                     sessionBalance: parseFloat(sessionBalance)
                 })
             }
@@ -810,27 +866,12 @@ function profileStuf(message, name, req) {
     const balances = message.msg.balances
     for (let index = 0; index < balances.length; index++) {
         const element = balances[index]
-        if (config.conta == 'demo') {
-            if (element.type == 4) {
-                message.msg.balance_id = element.id
-            }
-        }
-        else if (config.conta == 'real') {
-            if (element.type == 1) {
-                message.msg.balance_id = element.id
-            }
+        if (element.type == 4) {
+            playersMap.set(parseInt(req), { ...playersMap.get(parseInt(req)), demo: element.id })
+        } else if (element.type == 1) {
+            playersMap.set(parseInt(req), { ...playersMap.get(parseInt(req)), real: element.id })
         }
     }
-    playersMap.set(parseInt(req), { ...playersMap.get(parseInt(req)), balanceId: message.msg.balance_id })
-
-    // subscribePortifolio()
-
-    // if (!getLeadersBool) {
-    //     getLeadersBool = true
-    //     getLeaders(ws)
-    // }
-
-    // subs(name, 'subscribeMessage')
 
 }
 
@@ -1010,13 +1051,12 @@ let logged
 const doLogin = (ssid, ws, chatId) => {
     return new Promise((resolve, reject) => {
         if (ws.readyState === WebSocket.OPEN) {
-            console.log(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId }))
-            ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId }))
+            ws.send(JSON.stringify({ 'name': 'ssid', 'msg': ssid, "request_id": chatId.toString() }))
             logged = true
             resolve()
         } else {
             ws.terminate()
-            ws = new WebSocket(urlIq)
+            ws = new WebSocket(url)
             ws.onopen = onOpen
             ws.onerror = onError
             ws.onmessage = onMessage
@@ -1025,7 +1065,7 @@ const doLogin = (ssid, ws, chatId) => {
     })
 }
 
-const auth = (login, password, chatId) => {
+const auth = (login, password, chatId, state) => {
     let ws = new WebSocket(url)
     ws.onopen = onOpen
     ws.onerror = onError
@@ -1035,16 +1075,26 @@ const auth = (login, password, chatId) => {
         password: password
     }).then((response) => {
         ssid = response.data.ssid
-        const loginn = setInterval(() => {
-            if (logged) {
-                clearInterval(loginn)
-            }
-            loginAsync(ssid, ws, chatId)
-        }, 500);
-
+        // const loginn = setInterval(() => {
+        //     if (logged) {
+        //         clearInterval(loginn)
+        //         return
+        //     }
+        loginAsync(ssid, ws, chatId)
+        // }, 1000);
+        playersMap.set(chatId, { ...playersMap.get(chatId), lastAction: state, ws, lastTradeId: new Array() });
+        console.log(playersMap);
+        if (state != 'ok') {
+            bot.sendMessage(chatId, "Por favor informe o valor da entrada.");
+        } else {
+            bot.sendMessage(chatId, "Tudo certo, aguarde os sinais... para alterar alguma informação, digite /edit.");
+        }
 
     }).catch(function (err) {
+        playersMap.set(chatId, { ...playersMap.get(chatId), lastAction: 'getLogin' });
+        bot.sendMessage(chatId, 'Erro ao se conectar..., por favor informe o Login novamente.')
         console.log('Erro ao se conectar... Tente novamente')
+        console.log(playersMap);
     })
     return ws
 }
