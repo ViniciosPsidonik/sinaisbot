@@ -7,7 +7,7 @@ const Players = require('./mongo')
 
 const token = process.env.BOT_TOKEN
 
-// //--------------------------------------------
+//--------------------------------------------
 
 // const TelegramBot = require('node-telegram-bot-api')
 // const { setInterval } = require('timers')
@@ -15,14 +15,14 @@ const token = process.env.BOT_TOKEN
 
 //--------------------------------------------
 
-// var port = process.env.PORT || 8443;
-// var host = process.env.HOST;
-// var TelegramBot = require('node-telegram-bot-api'),
-//     port = process.env.PORT || 443,
-//     host = '0.0.0.0',  // probably this change is not required
-//     externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
-//     bot = new TelegramBot(token, { webHook: { port, host } });
-// bot.setWebHook(externalUrl + ':443/bot' + token);
+var port = process.env.PORT || 8443;
+var host = process.env.HOST;
+var TelegramBot = require('node-telegram-bot-api'),
+    port = process.env.PORT || 443,
+    host = '0.0.0.0',  // probably this change is not required
+    externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://sinaisbot.herokuapp.com',
+    bot = new TelegramBot(token, { webHook: { port, host } });
+bot.setWebHook(externalUrl + ':443/bot' + token);
 
 //--------------------------------------------
 
@@ -33,14 +33,16 @@ let playersMap = new Map()
 
 setInterval(async () => {
     await setPlayersDB()
-    await getPlayersDB()
+    // await getPlayersDB()
 }, 30000);
 
 function setPlayersDB() {
     return new Promise((resolve, reject) => {
         for (var [key, value] of playersMap) {
             Players.find({ userId: key }, function (err, docs) {
-                let obj = { ...value, userId: key }
+                let actived = value.actived ? value.actived : false
+                let amount = obj.amountInitial ? obj.amountInitial : obj.amount
+                let obj = { ...value, userId: key, actived, amount }
                 if (docs && docs.length > 0) {
                     Players.findOneAndUpdate({ userId: key }, { ...obj }, (err, result) => {
                         // console.log('findOneAndUpdate');
@@ -69,7 +71,7 @@ function setWS() {
                     chat: {
                         id: key
                     }
-                }, 'ok')
+                }, 'ok', true)
             }
         }
         resolve()
@@ -95,6 +97,8 @@ function getPlayersDB(action) {
                         stopWin: element.stopWin,
                         stopLoss: element.stopLoss,
                         conta: element.conta,
+                        actualGale: playersMap.has(element.userId) && playersMap.get(element.userId).actualGale ? playersMap.get(element.userId).actualGale : 0,
+                        amountInitial: playersMap.has(element.userId) && playersMap.get(element.userId).amountInitial ? playersMap.get(element.userId).amountInitial : element.amount,
                         gale: element.gale,
                         galeFactor: element.galeFactor,
                         galeLevel: element.galeLevel
@@ -309,7 +313,7 @@ bot.on('message', async msg => {
                     bot.sendMessage(msg.chat.id, invalidValue)
                 }
             } else if (playersMap.has(msg.chat.id) && playersMap.get(msg.chat.id).lastAction && playersMap.get(msg.chat.id).lastAction == 'getAmount' && !commandsList.includes(msg.text.toLowerCase())) {
-                if (isNumeric(msg.text.trim())) {
+                if (isNumeric(msg.text.trim()) && parseFloat(msg.text.trim()) >= 1) {
                     playersMap.set(msg.chat.id, { ...playersMap.get(msg.chat.id), lastAction: 'getStopWin', amount: parseFloat(msg.text.trim()) })
                     console.log(playersMap);
                     bot.sendMessage(msg.chat.id, "Informe seu stop Win.")
@@ -366,6 +370,7 @@ bot.on('message', async msg => {
                 bot.sendMessage(msg.chat.id, "Lista de comandos: \n /start -> inicia o robô. \n /edit -> edita os parâmetros do robô. \n /stop -> paralisa o robô.")
             } else if (adminTelegramIds.includes(msg.from.id) && (msg.text.toUpperCase().includes('CALL') || msg.text.toUpperCase().includes('PUT'))) {
                 schedules.push(msg.text)
+                bot.sendMessage(msg.chat.id, "Sinal computado...")
                 console.log(schedules);
             } else if (adminTelegramIds.includes(msg.from.id) && (msg.text.toLowerCase().includes('cancela'))) {
                 schedules.pop()
@@ -609,26 +614,15 @@ const onMessage = e => {
 
     if (message.name == 'option' && message.status != 0) {
         const active = message.request_id.split('/')[0]
-        buysCount.set(parseInt(active), buysCount.get(parseInt(active)) - 1)
         console.log(`Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
-        bot.sendMessage(parseInt(message.request_id), `Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
+        bot.sendMessage(parseInt(message.request_id), `Erro ao realizar operação...`)
         console.log('RES = ' + e.data)
-        if (soros)
-            positionOpenedSoros = false
-        if (gale)
-            positionOpenedGale = false
     }
 
     if (message.name == 'digital-option-placed' && message.status != 2000) {
-        const active = message.request_id.split('/')[0]
-        buysCount.set(parseInt(active), buysCount.get(parseInt(active)) - 1)
         console.log(`Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
-        bot.sendMessage(parseInt(message.request_id), `Erro ao comprar -> ${getActiveString(`${active}`, activesMapString)}`)
+        bot.sendMessage(parseInt(message.request_id), `Erro ao realizar operação...`)
         console.log('RES = ' + e.data)
-        if (soros)
-            positionOpenedSoros = false
-        if (gale)
-            positionOpenedGale = false
     }
 
     for (var [key, value] of playersMap) {
@@ -637,12 +631,12 @@ const onMessage = e => {
             bot.sendMessage(key, "Stop Win alcançado, parando bot...")
             playersMap.get(key).ws.terminate()
             playersMap.get(key).ws = null
-            playersMap.set(key, { ...playersMap.get(key), lastAction: 'stop' })
+            playersMap.set(key, { ...playersMap.get(key), lastAction: 'stop', sessionBalance: 0, actualGale: 0 })
         } else if (value.sessionBalance && Math.abs(value.sessionBalance) >= value.stopLoss && value.lastAction != 'stop') {
             bot.sendMessage(key, "Stop Loss alcançado, parando bot...")
             playersMap.get(key).ws.terminate()
             playersMap.get(key).ws = null
-            playersMap.set(key, { ...playersMap.get(key), lastAction: 'stop' })
+            playersMap.set(key, { ...playersMap.get(key), lastAction: 'stop', sessionBalance: 0, actualGale: 0 })
         }
     }
 
@@ -773,8 +767,8 @@ function start(msg) {
     playersMap.set(msg.chat.id, { lastAction: 'getLogin' });
 }
 
-function saveWS(msg, state) {
-    auth(playersMap.get(msg.chat.id).login, playersMap.get(msg.chat.id).pass, msg.chat.id, state);
+function saveWS(msg, state, isFirst) {
+    auth(playersMap.get(msg.chat.id).login, playersMap.get(msg.chat.id).pass, msg.chat.id, state, isFirst);
 }
 
 function getCandle() {
@@ -813,14 +807,14 @@ function optionClosed(message) {
 
             console.log(`=== ${profitAmount < 0 ? "❌ Loss" : "✅ Win"} ${profitAmount.toFixed(2)} / Balance: ${parseFloat(sessionBalance.toFixed(2))} / ${getActiveString(active, activesMapString) ? getActiveString(active, activesMapString) : active} / Binario / ${currentTimemmssDate} ===`)
 
-            console.log(profitAmount);
-            console.log(value.gale);
-            console.log(value.actualGale);
-            console.log(value.galeLevel);
-            console.log(sessionBalance);
-            console.log(profitAmount < 0 && value.gale && value.actualGale <= value.galeLevel);
+            // console.log(profitAmount);
+            // console.log(value.gale);
+            // console.log(value.actualGale);
+            // console.log(value.galeLevel);
+            // console.log(sessionBalance);
+            // console.log(profitAmount < 0 && value.gale && value.actualGale <= value.galeLevel);
 
-            let amountInitial = !value.amountInitial ? value.amount : value.amountInitial
+            let amountInitial = value.amountInitial ? value.amountInitial : value.amount
 
             if (profitAmount < 0 && value.gale && value.actualGale < value.galeLevel) {
                 playersMap.set(key, {
@@ -835,13 +829,22 @@ function optionClosed(message) {
                 playersMap.set(key, {
                     ...value,
                     amount: value.amountInitial,
+                    amountInitial: 0,
                     actualGale: 0,
                     sessionBalance: parseFloat(sessionBalance)
+                })
+            } else if (value.gale) {
+                playersMap.set(key, {
+                    ...value,
+                    amount: value.amountInitial,
+                    amountInitial: 0,
+                    actualGale: 0,
+                    sessionBalance: parseFloat(sessionBalance),
                 })
             } else {
                 playersMap.set(key, {
                     ...value,
-                    sessionBalance: parseFloat(sessionBalance)
+                    sessionBalance: parseFloat(sessionBalance),
                 })
             }
             console.log(playersMap);
